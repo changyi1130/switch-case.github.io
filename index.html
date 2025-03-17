@@ -78,6 +78,15 @@
             display: flex;
             align-items: center;
         }
+
+        .button-group {
+            justify-content: space-between;
+        }
+
+        #copyBtn {
+            margin-left: auto;
+            /* 使复制按钮靠右 */
+        }
     </style>
 </head>
 
@@ -113,17 +122,36 @@
 
         function convertToTitleCase() {
             const textarea = document.getElementById('textInput');
-            const prepositions = new Set(['a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'as']);
+            const prepositions = new Set(['a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'as', 'and']);
 
-            textarea.value = textarea.value.toLowerCase()
-                .split(' ')
-                .map((word, index) => {
-                    if (index > 0 && prepositions.has(word)) {
-                        return word;
-                    }
-                    return word.charAt(0).toUpperCase() + word.slice(1);
+            textarea.value = textarea.value
+                // 保留原始换行和空格结构
+                .split(/\n/) // 先按行分割
+                .map(line => {
+                    let isFirstWord = true;
+                    return line
+                        // 用正则表达式分割保留空格
+                        .split(/(\s+)/)
+                        .map(segment => {
+                            // 只处理非空格内容
+                            if (/\S/.test(segment)) {
+                                const original = segment.toLowerCase();
+                                let transformed = original;
+
+                                // 判断是否需要大写
+                                if (isFirstWord || !prepositions.has(original)) {
+                                    transformed = original.charAt(0).toUpperCase() + original.slice(1);
+                                }
+
+                                isFirstWord = false; // 后续单词都不是第一个
+                                return transformed;
+                            }
+                            // 保留空格和制表符等空白字符
+                            return segment;
+                        })
+                        .join(''); // 保持原有空格
                 })
-                .join(' ');
+                .join('\n'); // 保留原有换行
         }
 
         // 翻译功能
@@ -140,29 +168,25 @@
             window.open(`https://fanyi.baidu.com/?aldtype=16047#auto/zh/${text}`, '_blank');
         }
 
-        // 新增复制功能
-        function copyText() {
-            const textarea = document.getElementById('textInput');
-            textarea.select();
-
-            try {
-                navigator.clipboard.writeText(textarea.value);
-                showCopyFeedback();
-            } catch (err) {
-                // 兼容旧版浏览器的写法
-                document.execCommand('copy');
-            }
-        }
-
+        // 保留优化后的版本，删除旧版
         function copyText() {
             const btn = document.getElementById('copyBtn');
             const textarea = document.getElementById('textInput');
+
+            // 添加选择文本操作
+            textarea.select(); // 重要：确保旧版浏览器兼容
 
             try {
                 navigator.clipboard.writeText(textarea.value);
                 showCopyFeedback(btn);
             } catch (err) {
-                document.execCommand('copy');
+                // 旧版浏览器兼容方案
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (e) {
+                    alert('复制失败，请手动复制');
+                }
                 showCopyFeedback(btn);
             }
         }
