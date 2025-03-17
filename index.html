@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,16 +61,30 @@
         button:hover {
             background-color: var(--button-hover);
         }
+
+        .copy-success {
+            color: #4CAF50;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .show-check .copy-success {
+            opacity: 1;
+        }
+
+        button {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <textarea 
-            id="textInput" 
-            placeholder="输入文本..." 
-            spellcheck="true"
-        ></textarea>
-        
+        <textarea id="textInput" placeholder="输入文本..." spellcheck="true"></textarea>
+
         <div class="button-group">
             <button onclick="convertToUpper()">全大写</button>
             <button onclick="convertToLower()">全小写</button>
@@ -77,6 +92,10 @@
             <button onclick="GoogleTranslateText()">Google 翻译</button>
             <button onclick="BingTranslateText()">Bing 翻译</button>
             <button onclick="BaiduTranslateText()">百度翻译</button>
+            <button id="copyBtn" onclick="copyText()">
+                复制内容
+                <span class="copy-success">✓</span>
+            </button>
         </div>
     </div>
 
@@ -95,7 +114,7 @@
         function convertToTitleCase() {
             const textarea = document.getElementById('textInput');
             const prepositions = new Set(['a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'as']);
-            
+
             textarea.value = textarea.value.toLowerCase()
                 .split(' ')
                 .map((word, index) => {
@@ -120,6 +139,42 @@
             const text = encodeURIComponent(document.getElementById('textInput').value);
             window.open(`https://fanyi.baidu.com/?aldtype=16047#auto/zh/${text}`, '_blank');
         }
+
+        // 新增复制功能
+        function copyText() {
+            const textarea = document.getElementById('textInput');
+            textarea.select();
+
+            try {
+                navigator.clipboard.writeText(textarea.value);
+                showCopyFeedback();
+            } catch (err) {
+                // 兼容旧版浏览器的写法
+                document.execCommand('copy');
+            }
+        }
+
+        function copyText() {
+            const btn = document.getElementById('copyBtn');
+            const textarea = document.getElementById('textInput');
+
+            try {
+                navigator.clipboard.writeText(textarea.value);
+                showCopyFeedback(btn);
+            } catch (err) {
+                document.execCommand('copy');
+                showCopyFeedback(btn);
+            }
+        }
+
+        // 复制功能优化版
+        function showCopyFeedback(button) {
+            button.classList.add('show-check');
+            setTimeout(() => {
+                button.classList.remove('show-check');
+            }, 1000);
+        }
     </script>
 </body>
+
 </html>
